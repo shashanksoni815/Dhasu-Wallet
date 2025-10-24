@@ -14,8 +14,85 @@ export const useTrip = () => {
 export const TripProvider = ({ children }) => {
   const [trips, setTrips] = useState([]);
   const [currentTrip, setCurrentTrip] = useState(null);
+  const [tripMembers, setTripMembers] = useState([]);
   const [tripExpenses, setTripExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [settlements, setSettlements] = useState([]);
+
+  // Search users by email
+  const searchUsers = async (email) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/users/search?email=${email}`);
+      return response.data.data.users;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      throw error;
+    }
+  };
+
+
+  // Get trip members from database
+  const fetchTripMembers = async (tripId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}/members`);
+      setTripMembers(response.data.data.members);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching trip members:', error);
+      throw error;
+    }
+  }; 
+
+  // Add member to trip by email
+  const addMemberByEmail = async (tripId, email) => {
+    try {
+      const response = await axios.post(`http://localhost:8080/api/trips/${tripId}/members/email`, { email });
+      setTripMembers(response.data.data.members);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding member:', error);
+      throw error;
+    }
+  };
+
+  // Remove member from trip
+  const removeMember = async (tripId, memberId) => {
+    try {
+      const response = await axios.delete(`http://localhost:8080/api/trips/${tripId}/members/${memberId}`);
+      setTripMembers(response.data.data.members);
+      return response.data;
+    } catch (error) {
+      console.error('Error removing member:', error);
+      throw error;
+    }
+  };
+
+  // Create expense with auto-split
+  const createAutoSplitExpense = async (tripId, expenseData) => {
+    try {
+      const response = await axios.post(`http://localhost:8080/api/trips/${tripId}/expenses/auto-split`, expenseData);
+      setTripExpenses(prev => [response.data.data.expense, ...prev]);
+      return { success: true, data: response.data.data.expense };
+    } catch (error) {
+      console.error('Error creating auto-split expense:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Failed to create expense' 
+      };
+    }
+  };
+
+  // Get settlements
+  const fetchSettlements = async (tripId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}/settlements`);
+      setSettlements(response.data.data.settlements);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching settlements:', error);
+      throw error;
+    }
+  }
 
   // Fetch all trips for user
   const fetchTrips = async () => {
@@ -215,10 +292,13 @@ export const TripProvider = ({ children }) => {
   const value = {
     trips,
     currentTrip,
+    tripMembers,
     tripExpenses,
+    settlements,
     loading,
     fetchTrips,
     fetchTripById,
+    fetchTripMembers,
     createTrip,
     updateTrip,
     deleteTrip,
@@ -226,6 +306,11 @@ export const TripProvider = ({ children }) => {
     createTripExpense,
     updateTripExpense,
     deleteTripExpense,
+    searchUsers,
+    addMemberByEmail,
+    removeMember,
+    createAutoSplitExpense,
+    fetchSettlements,
     calculateSettlements
   };
 

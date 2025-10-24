@@ -1,11 +1,25 @@
 import  { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, DollarSign, Calculator } from 'lucide-react';
+import { ArrowLeft, Plus, Users, DollarSign, Calculator, UserPlus } from 'lucide-react';
 import { useTrip } from '../../Context/TripContext';
 // import TripExpenseForm from '../../components/Trips/TripExpenseForm';
 // import ExpenseList from '../../components/Expenses/ExpenseList';
 import TripExpenseForm from '../../Components/Trips/TripExpenses';
 import ExpenseList from '../../Components/Expense/ExpensesList';
+import EnhancedTripExpenseForm from '../../Components/Trips/EnhanceTripExpenseForm';
+import MemberManagement from '../../Components/Trips/MemberManagement';
+import SettlementsDisplay from '../../Components/Trips/SattlmentDisplay';
+import ErrorBoundary from '../../Components/ErrorBoundary';
+
+// src/pages/App/TripDetail.jsx (Updated)
+// import React, { useState, useEffect } from 'react';
+// import { useParams, useNavigate } from 'react-router-dom';
+// import { ArrowLeft, Plus, Users, DollarSign, Calculator, UserPlus } from 'lucide-react';
+// import { useTrip } from '../../context/TripContext';
+// import EnhancedTripExpenseForm from '../../components/Trips/EnhancedTripExpenseForm';
+// import ExpenseList from '../../components/Expenses/ExpenseList';
+// import MemberManagement from '../../components/Trips/MemberManagement';
+// import SettlementsDisplay from '../../components/Trips/SettlementsDisplay';
 
 const TripDetail = () => {
   const { tripId } = useParams();
@@ -16,15 +30,14 @@ const TripDetail = () => {
     loading,
     fetchTripById,
     fetchTripExpenses,
-    createTripExpense,
+    createAutoSplitExpense,
     updateTripExpense,
-    deleteTripExpense,
-    calculateSettlements
+    deleteTripExpense
   } = useTrip();
 
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [settlements, setSettlements] = useState([]);
+  const [activeTab, setActiveTab] = useState('expenses');
 
   useEffect(() => {
     if (tripId) {
@@ -33,17 +46,12 @@ const TripDetail = () => {
     }
   }, [tripId]);
 
-  useEffect(() => {
-    if (tripExpenses.length > 0) {
-      const calculatedSettlements = calculateSettlements(tripExpenses);
-      setSettlements(calculatedSettlements);
-    } else {
-      setSettlements([]);
-    }
-  }, [tripExpenses]);
-
   const handleCreateExpense = async (expenseData) => {
-    const result = await createTripExpense(tripId, expenseData);
+    const result = await createAutoSplitExpense(tripId, expenseData);
+    if (result.success) {
+      setShowExpenseForm(false);
+      fetchTripExpenses(tripId); // Refresh expenses
+    }
     return result;
   };
 
@@ -51,6 +59,8 @@ const TripDetail = () => {
     const result = await updateTripExpense(tripId, editingExpense._id, expenseData);
     if (result.success) {
       setEditingExpense(null);
+      setShowExpenseForm(false);
+      fetchTripExpenses(tripId);
     }
     return result;
   };
@@ -58,12 +68,18 @@ const TripDetail = () => {
   const handleDeleteExpense = async (expenseId) => {
     if (window.confirm('Are you sure you want to delete this expense?')) {
       await deleteTripExpense(tripId, expenseId);
+      fetchTripExpenses(tripId);
     }
   };
 
   const handleEditExpense = (expense) => {
     setEditingExpense(expense);
     setShowExpenseForm(true);
+  };
+
+  const handleMembersUpdated = () => {
+    fetchTripById(tripId);
+    fetchTripExpenses(tripId);
   };
 
   const totalExpenses = tripExpenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -151,46 +167,64 @@ const TripDetail = () => {
             <Users className="h-8 w-8 text-blue-600" />
             <div>
               <p className="text-sm font-medium text-gray-600">Settlements</p>
-              <p className="text-2xl font-bold text-gray-900">{settlements.length}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {currentTrip.settlements?.length || 0}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Settlements */}
-      {settlements.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Settlements Needed</h3>
-          <div className="space-y-3">
-            {settlements.map((settlement, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <span className="font-medium text-gray-900">{settlement.from.name}</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="font-medium text-gray-900">{settlement.to.name}</span>
-                </div>
-                <span className="font-bold text-yellow-700">
-                  {currentTrip.currency} {settlement.amount.toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {['expenses', 'members', 'settlements'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                activeTab === tab
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+      </div>
 
-      {/* Expenses List */}
+      {/* Tab Content */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Trip Expenses</h3>
-        <ExpenseList
-          expenses={tripExpenses}
-          loading={loading}
-          onEdit={handleEditExpense}
-          onDelete={handleDeleteExpense}
-        />
+        {activeTab === 'expenses' && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Trip Expenses</h3>
+            <ExpenseList
+              expenses={tripExpenses}
+              loading={loading}
+              onEdit={handleEditExpense}
+              onDelete={handleDeleteExpense}
+            />
+          </div>
+        )}
+
+        {activeTab === 'members' && (
+          // <MemberManagement 
+          //   trip={currentTrip} 
+          //   onMembersUpdated={handleMembersUpdated} 
+          // />
+          <ErrorBoundary>
+            <MemberManagement trip={currentTrip} onMembersUpdated={handleMembersUpdated} />
+          </ErrorBoundary>
+        )}
+
+        {activeTab === 'settlements' && (
+          <SettlementsDisplay trip={currentTrip} />
+        )}
       </div>
 
       {/* Expense Form Modal */}
-      <TripExpenseForm
+      <EnhancedTripExpenseForm
         trip={currentTrip}
         expense={editingExpense}
         onSave={editingExpense ? handleUpdateExpense : handleCreateExpense}
@@ -205,3 +239,5 @@ const TripDetail = () => {
 };
 
 export default TripDetail;
+
+

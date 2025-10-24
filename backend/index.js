@@ -784,6 +784,769 @@ app.delete('/api/groups/:id/expenses/:expenseId', authMiddleware, async (req, re
   }
 });
 
+// ==================== USER SEARCH & MEMBER MANAGEMENT ====================
+
+// Search users by email (for adding members)
+app.get('/api/users/search', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required for search' });
+    }
+    const users = await User.find({ 
+      email: { $regex: email, $options: 'i' } 
+    }).select('name email avatar');
+    res.json({ success: true, data: { users } });
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({ success: false, message: 'Server error while searching users' });
+  }
+});
+
+// Add member to trip by email
+app.post('/api/trips/:id/members/email', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    // Check if user is admin/creator
+    const userMember = trip.members.find(member => member.userId.toString() === req.user._id.toString());
+    if (userMember.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only trip admin can add members' });
+    }
+
+    // Find user by email
+    const userToAdd = await User.findOne({ email });
+    if (!userToAdd) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Check if user already in trip
+    const userExists = trip.members.some(member => member.userId.toString() === userToAdd._id.toString());
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User already in trip' });
+    }
+
+    // Add user to trip
+    trip.members.push({ userId: userToAdd._id, role: 'member' });
+    await trip.save();
+    
+    const updatedTrip = await Trip.findById(trip._id).populate('members.userId', 'name email avatar');
+    res.json({
+      success: true,
+      message: 'Member added successfully',
+      data: { trip: updatedTrip }
+    });
+  } catch (error) {
+    console.error('Add member by email error:', error);
+    res.status(500).json({ success: false, message: 'Server error while adding member' });
+  }
+});
+
+// Remove member from trip
+app.delete('/api/trips/:id/members/:memberId', authMiddleware, async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    // Check if user is admin/creator
+    const userMember = trip.members.find(member => member.userId.toString() === req.user._id.toString());
+    if (userMember.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only trip admin can remove members' });
+    }
+
+    // Prevent removing yourself
+    if (req.params.memberId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Cannot remove yourself from trip' });
+    }
+
+    // Remove member
+    trip.members = trip.members.filter(member => member.userId.toString() !== req.params.memberId);
+    await trip.save();
+    
+    const updatedTrip = await Trip.findById(trip._id).populate('members.userId', 'name email avatar');
+    res.json({
+      success: true,
+      message: 'Member removed successfully',
+      data: { trip: updatedTrip }
+    });
+  } catch (error) {
+    console.error('Remove member error:', error);
+    res.status(500).json({ success: false, message: 'Server error while removing member' });
+  }
+});
+
+// Similar routes for groups...
+app.post('/api/groups/:id/members/email', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Check if user is admin/creator
+    const userMember = group.members.find(member => member.userId.toString() === req.user._id.toString());
+    if (userMember.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only group admin can add members' });
+    }
+
+    // Find user by email
+    const userToAdd = await User.findOne({ email });
+    if (!userToAdd) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Check if user already in group
+    const userExists = group.members.some(member => member.userId.toString() === userToAdd._id.toString());
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User already in group' });
+    }
+
+    // Add user to group
+    group.members.push({ userId: userToAdd._id, role: 'member' });
+    await group.save();
+    
+    const updatedGroup = await Group.findById(group._id).populate('members.userId', 'name email avatar');
+    res.json({
+      success: true,
+      message: 'Member added successfully',
+      data: { group: updatedGroup }
+    });
+  } catch (error) {
+    console.error('Add member to group error:', error);
+    res.status(500).json({ success: false, message: 'Server error while adding member' });
+  }
+});
+
+// Remove member from group
+app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res) => {
+  try {
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Check if user is admin/creator
+    const userMember = group.members.find(member => member.userId.toString() === req.user._id.toString());
+    if (userMember.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only group admin can remove members' });
+    }
+
+    // Prevent removing yourself
+    if (req.params.memberId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Cannot remove yourself from group' });
+    }
+
+    // Remove member
+    group.members = group.members.filter(member => member.userId.toString() !== req.params.memberId);
+    await group.save();
+    
+    const updatedGroup = await Group.findById(group._id).populate('members.userId', 'name email avatar');
+    res.json({
+      success: true,
+      message: 'Member removed successfully',
+      data: { group: updatedGroup }
+    });
+  } catch (error) {
+    console.error('Remove member from group error:', error);
+    res.status(500).json({ success: false, message: 'Server error while removing member' });
+  }
+});
+
+// ==================== ENHANCED EXPENSE CREATION WITH AUTO-SPLITTING ====================
+
+// Enhanced Trip Expense Creation with Auto Equal Split
+app.post('/api/trips/:id/expenses/auto-split', authMiddleware, async (req, res) => {
+  try {
+    const { amount, description, category, date, paidBy } = req.body;
+    
+    if (!amount || !description || !paidBy) {
+      return res.status(400).json({ success: false, message: 'Amount, description, and paidBy are required' });
+    }
+
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    // Auto-calculate equal splits
+    const memberCount = trip.members.length;
+    const sharePerPerson = amount / memberCount;
+    const percentagePerPerson = (1 / memberCount) * 100;
+
+    const splitBetween = trip.members.map(member => ({
+      userId: member.userId,
+      share: sharePerPerson,
+      percentage: percentagePerPerson
+    }));
+
+    const tripExpense = new TripExpense({
+      tripId: req.params.id,
+      amount,
+      description,
+      category: category || 'Other',
+      date: date || new Date(),
+      paidBy,
+      splitBetween
+    });
+
+    await tripExpense.save();
+    
+    const populatedExpense = await TripExpense.findById(tripExpense._id)
+      .populate('paidBy', 'name email avatar')
+      .populate('splitBetween.userId', 'name email avatar');
+
+    res.status(201).json({
+      success: true,
+      message: 'Trip expense created with equal split',
+      data: { expense: populatedExpense }
+    });
+  } catch (error) {
+    console.error('Create auto-split trip expense error:', error);
+    res.status(500).json({ success: false, message: 'Server error while creating expense' });
+  }
+});
+
+// Enhanced Group Expense Creation with Auto Equal Split
+app.post('/api/groups/:id/expenses/auto-split', authMiddleware, async (req, res) => {
+  try {
+    const { amount, description, category, date, paidBy } = req.body;
+    
+    if (!amount || !description || !paidBy) {
+      return res.status(400).json({ success: false, message: 'Amount, description, and paidBy are required' });
+    }
+
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Auto-calculate equal splits
+    const memberCount = group.members.length;
+    const sharePerPerson = amount / memberCount;
+    const percentagePerPerson = (1 / memberCount) * 100;
+
+    const splitBetween = group.members.map(member => ({
+      userId: member.userId,
+      share: sharePerPerson,
+      percentage: percentagePerPerson
+    }));
+
+    const groupExpense = new GroupExpense({
+      groupId: req.params.id,
+      amount,
+      description,
+      category: category || 'Other',
+      date: date || new Date(),
+      paidBy,
+      splitBetween
+    });
+
+    await groupExpense.save();
+    
+    const populatedExpense = await GroupExpense.findById(groupExpense._id)
+      .populate('paidBy', 'name email avatar')
+      .populate('splitBetween.userId', 'name email avatar');
+
+    res.status(201).json({
+      success: true,
+      message: 'Group expense created with equal split',
+      data: { expense: populatedExpense }
+    });
+  } catch (error) {
+    console.error('Create auto-split group expense error:', error);
+    res.status(500).json({ success: false, message: 'Server error while creating expense' });
+  }
+});
+
+// ==================== SETTLEMENT CALCULATIONS ====================
+
+// Get trip settlements (who owes whom)
+app.get('/api/trips/:id/settlements', authMiddleware, async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    const expenses = await TripExpense.find({ tripId: req.params.id })
+      .populate('paidBy', 'name email avatar')
+      .populate('splitBetween.userId', 'name email avatar');
+
+    // Calculate balances for each member
+    const balances = {};
+    trip.members.forEach(member => {
+      balances[member.userId.toString()] = {
+        user: member.userId,
+        balance: 0,
+        totalPaid: 0,
+        totalOwed: 0
+      };
+    });
+
+    // Calculate net balances
+    expenses.forEach(expense => {
+      const paidBy = expense.paidBy._id.toString();
+      
+      // Person who paid gets positive balance
+      balances[paidBy].balance += expense.amount;
+      balances[paidBy].totalPaid += expense.amount;
+      
+      // People who owe get negative balance
+      expense.splitBetween.forEach(split => {
+        const userId = split.userId._id.toString();
+        balances[userId].balance -= split.share;
+        balances[userId].totalOwed += split.share;
+      });
+    });
+
+    // Calculate settlements (simplify debts)
+    const settlements = [];
+    const creditors = Object.values(balances)
+      .filter(b => b.balance > 0.01)
+      .sort((a, b) => b.balance - a.balance);
+    
+    const debtors = Object.values(balances)
+      .filter(b => b.balance < -0.01)
+      .sort((a, b) => a.balance - b.balance);
+
+    creditors.forEach(creditor => {
+      debtors.forEach(debtor => {
+        if (Math.abs(debtor.balance) > 0.01 && creditor.balance > 0.01) {
+          const amount = Math.min(creditor.balance, Math.abs(debtor.balance));
+          
+          settlements.push({
+            from: { 
+              id: debtor.user._id, 
+              name: debtor.user.name, 
+              email: debtor.user.email 
+            },
+            to: { 
+              id: creditor.user._id, 
+              name: creditor.user.name, 
+              email: creditor.user.email 
+            },
+            amount: parseFloat(amount.toFixed(2)),
+            currency: trip.currency
+          });
+          
+          creditor.balance -= amount;
+          debtor.balance += amount;
+        }
+      });
+    });
+
+    // Prepare balance summary for frontend
+    const balanceSummary = Object.values(balances).map(balance => ({
+      user: {
+        id: balance.user._id,
+        name: balance.user.name,
+        email: balance.user.email,
+        avatar: balance.user.avatar
+      },
+      balance: parseFloat(balance.balance.toFixed(2)),
+      totalPaid: parseFloat(balance.totalPaid.toFixed(2)),
+      totalOwed: parseFloat(balance.totalOwed.toFixed(2))
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        settlements,
+        balanceSummary,
+        totalExpenses: expenses.reduce((sum, exp) => sum + exp.amount, 0),
+        currency: trip.currency
+      }
+    });
+  } catch (error) {
+    console.error('Get trip settlements error:', error);
+    res.status(500).json({ success: false, message: 'Server error while calculating settlements' });
+  }
+});
+
+// Get group settlements (similar logic)
+app.get('/api/groups/:id/settlements', authMiddleware, async (req, res) => {
+  try {
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    const expenses = await GroupExpense.find({ groupId: req.params.id })
+      .populate('paidBy', 'name email avatar')
+      .populate('splitBetween.userId', 'name email avatar');
+
+    // Similar settlement calculation logic as above...
+    const balances = {};
+    group.members.forEach(member => {
+      balances[member.userId.toString()] = {
+        user: member.userId,
+        balance: 0,
+        totalPaid: 0,
+        totalOwed: 0
+      };
+    });
+
+    expenses.forEach(expense => {
+      const paidBy = expense.paidBy._id.toString();
+      balances[paidBy].balance += expense.amount;
+      balances[paidBy].totalPaid += expense.amount;
+      
+      expense.splitBetween.forEach(split => {
+        const userId = split.userId._id.toString();
+        balances[userId].balance -= split.share;
+        balances[userId].totalOwed += split.share;
+      });
+    });
+
+    const settlements = [];
+    const creditors = Object.values(balances)
+      .filter(b => b.balance > 0.01)
+      .sort((a, b) => b.balance - a.balance);
+    
+    const debtors = Object.values(balances)
+      .filter(b => b.balance < -0.01)
+      .sort((a, b) => a.balance - b.balance);
+
+    creditors.forEach(creditor => {
+      debtors.forEach(debtor => {
+        if (Math.abs(debtor.balance) > 0.01 && creditor.balance > 0.01) {
+          const amount = Math.min(creditor.balance, Math.abs(debtor.balance));
+          
+          settlements.push({
+            from: { 
+              id: debtor.user._id, 
+              name: debtor.user.name, 
+              email: debtor.user.email 
+            },
+            to: { 
+              id: creditor.user._id, 
+              name: creditor.user.name, 
+              email: creditor.user.email 
+            },
+            amount: parseFloat(amount.toFixed(2))
+          });
+          
+          creditor.balance -= amount;
+          debtor.balance += amount;
+        }
+      });
+    });
+
+    const balanceSummary = Object.values(balances).map(balance => ({
+      user: {
+        id: balance.user._id,
+        name: balance.user.name,
+        email: balance.user.email,
+        avatar: balance.user.avatar
+      },
+      balance: parseFloat(balance.balance.toFixed(2)),
+      totalPaid: parseFloat(balance.totalPaid.toFixed(2)),
+      totalOwed: parseFloat(balance.totalOwed.toFixed(2))
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        settlements,
+        balanceSummary,
+        totalExpenses: expenses.reduce((sum, exp) => sum + exp.amount, 0)
+      }
+    });
+  } catch (error) {
+    console.error('Get group settlements error:', error);
+    res.status(500).json({ success: false, message: 'Server error while calculating settlements' });
+  }
+});
+
+// ==================== ENHANCED MEMBER MANAGEMENT ROUTES ====================
+
+// Search users by email (for adding members)
+app.get('/api/users/search', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required for search' });
+    }
+    
+    const users = await User.find({ 
+      email: { $regex: email, $options: 'i' } 
+    }).select('name email avatar _id');
+    
+    res.json({ success: true, data: { users } });
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({ success: false, message: 'Server error while searching users' });
+  }
+});
+
+// Get trip members with full user details
+app.get('/api/trips/:id/members', authMiddleware, async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ 
+      _id: req.params.id, 
+      'members.userId': req.user._id 
+    }).populate('members.userId', 'name email avatar _id');
+    
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      data: { 
+        members: trip.members,
+        currentUserRole: trip.members.find(m => m.userId._id.toString() === req.user._id.toString())?.role
+      } 
+    });
+  } catch (error) {
+    console.error('Get trip members error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching members' });
+  }
+});
+
+// Add member to trip by email
+app.post('/api/trips/:id/members', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    // Check if current user is admin
+    const currentUserMember = trip.members.find(member => 
+      member.userId.toString() === req.user._id.toString()
+    );
+    
+    if (currentUserMember?.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only trip admin can add members' });
+    }
+
+    // Find user by email
+    const userToAdd = await User.findOne({ email });
+    if (!userToAdd) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Check if user already in trip
+    const userExists = trip.members.some(member => 
+      member.userId.toString() === userToAdd._id.toString()
+    );
+    
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User already in trip' });
+    }
+
+    // Add user to trip
+    trip.members.push({ 
+      userId: userToAdd._id, 
+      role: 'member',
+      joinedAt: new Date()
+    });
+    
+    await trip.save();
+    
+    // Return updated members with populated user data
+    const updatedTrip = await Trip.findById(trip._id)
+      .populate('members.userId', 'name email avatar _id');
+    
+    res.json({
+      success: true,
+      message: 'Member added successfully',
+      data: { members: updatedTrip.members }
+    });
+  } catch (error) {
+    console.error('Add member error:', error);
+    res.status(500).json({ success: false, message: 'Server error while adding member' });
+  }
+});
+
+// Remove member from trip
+app.delete('/api/trips/:id/members/:memberId', authMiddleware, async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    // Check if current user is admin
+    const currentUserMember = trip.members.find(member => 
+      member.userId.toString() === req.user._id.toString()
+    );
+    
+    if (currentUserMember?.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only trip admin can remove members' });
+    }
+
+    // Prevent removing yourself
+    if (req.params.memberId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Cannot remove yourself from trip' });
+    }
+
+    // Remove member
+    trip.members = trip.members.filter(member => 
+      member.userId.toString() !== req.params.memberId
+    );
+    
+    await trip.save();
+    
+    // Return updated members with populated user data
+    const updatedTrip = await Trip.findById(trip._id)
+      .populate('members.userId', 'name email avatar _id');
+    
+    res.json({
+      success: true,
+      message: 'Member removed successfully',
+      data: { members: updatedTrip.members }
+    });
+  } catch (error) {
+    console.error('Remove member error:', error);
+    res.status(500).json({ success: false, message: 'Server error while removing member' });
+  }
+});
+
+// Similar routes for groups...
+app.get('/api/groups/:id/members', authMiddleware, async (req, res) => {
+  try {
+    const group = await Group.findOne({ 
+      _id: req.params.id, 
+      'members.userId': req.user._id 
+    }).populate('members.userId', 'name email avatar _id');
+    
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      data: { 
+        members: group.members,
+        currentUserRole: group.members.find(m => m.userId._id.toString() === req.user._id.toString())?.role
+      } 
+    });
+  } catch (error) {
+    console.error('Get group members error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching members' });
+  }
+});
+
+app.post('/api/groups/:id/members', authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Check if current user is admin
+    const currentUserMember = group.members.find(member => 
+      member.userId.toString() === req.user._id.toString()
+    );
+    
+    if (currentUserMember?.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only group admin can add members' });
+    }
+
+    // Find user by email
+    const userToAdd = await User.findOne({ email });
+    if (!userToAdd) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Check if user already in group
+    const userExists = group.members.some(member => 
+      member.userId.toString() === userToAdd._id.toString()
+    );
+    
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User already in group' });
+    }
+
+    // Add user to group
+    group.members.push({ 
+      userId: userToAdd._id, 
+      role: 'member',
+      joinedAt: new Date()
+    });
+    
+    await group.save();
+    
+    const updatedGroup = await Group.findById(group._id)
+      .populate('members.userId', 'name email avatar _id');
+    
+    res.json({
+      success: true,
+      message: 'Member added successfully',
+      data: { members: updatedGroup.members }
+    });
+  } catch (error) {
+    console.error('Add member to group error:', error);
+    res.status(500).json({ success: false, message: 'Server error while adding member' });
+  }
+});
+
+app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res) => {
+  try {
+    const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Check if current user is admin
+    const currentUserMember = group.members.find(member => 
+      member.userId.toString() === req.user._id.toString()
+    );
+    
+    if (currentUserMember?.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only group admin can remove members' });
+    }
+
+    // Prevent removing yourself
+    if (req.params.memberId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Cannot remove yourself from group' });
+    }
+
+    // Remove member
+    group.members = group.members.filter(member => 
+      member.userId.toString() !== req.params.memberId
+    );
+    
+    await group.save();
+    
+    const updatedGroup = await Group.findById(group._id)
+      .populate('members.userId', 'name email avatar _id');
+    
+    res.json({
+      success: true,
+      message: 'Member removed successfully',
+      data: { members: updatedGroup.members }
+    });
+  } catch (error) {
+    console.error('Remove member from group error:', error);
+    res.status(500).json({ success: false, message: 'Server error while removing member' });
+  }
+});
+
+
+
+
+
+
 // ==================== DASHBOARD ROUTES ====================
 
 // Get Dashboard Summary

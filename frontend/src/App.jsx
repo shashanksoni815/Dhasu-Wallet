@@ -16,6 +16,18 @@ import Groups from './Pages/AppPages/Groups';
 import GroupDetail from './Pages/AppPages/GroupDetail';
 import Profile from './Pages/AppPages/Profile';
 
+import Features from './Pages/Features';
+import HowItWorks from './Pages/HowItWorks';
+import Pricing from './Pages/Pricing';
+import LiveDemo from './Pages/LiveDemo';
+import About from './Pages/About';
+import Contact from './Pages/Contact';
+import HelpCenter from './Pages/HelpCenter';
+import PrivacyPolicy from './Pages/PrivacyPolicy';
+import TermsOfService from './Pages/TermsOfService';
+import Security from './Pages/Security';
+
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -56,6 +68,16 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
+          <Route path="/features" element={<Features />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/demo" element={<LiveDemo />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/security" element={<Security />} />
           <Route path="/login" element={
             <PublicRoute>
               <Login />

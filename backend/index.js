@@ -1419,6 +1419,132 @@ app.delete('/api/trips/:id/members/:memberId', authMiddleware, async (req, res) 
 });
 
 // Similar routes for groups...
+// app.get('/api/groups/:id/members', authMiddleware, async (req, res) => {
+//   try {
+//     const group = await Group.findOne({ 
+//       _id: req.params.id, 
+//       'members.userId': req.user._id 
+//     }).populate('members.userId', 'name email avatar _id');
+    
+//     if (!group) {
+//       return res.status(404).json({ success: false, message: 'Group not found' });
+//     }
+
+//     res.json({ 
+//       success: true, 
+//       data: { 
+//         members: group.members,
+//         currentUserRole: group.members.find(m => m.userId._id.toString() === req.user._id.toString())?.role
+//       } 
+//     });
+//   } catch (error) {
+//     console.error('Get group members error:', error);
+//     res.status(500).json({ success: false, message: 'Server error while fetching members' });
+//   }
+// });
+
+// app.post('/api/groups/:id/members', authMiddleware, async (req, res) => {
+//   try {
+//     const { email } = req.body;
+//     const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+//     if (!group) {
+//       return res.status(404).json({ success: false, message: 'Group not found' });
+//     }
+
+//     // Check if current user is admin
+//     const currentUserMember = group.members.find(member => 
+//       member.userId.toString() === req.user._id.toString()
+//     );
+    
+//     if (currentUserMember?.role !== 'admin') {
+//       return res.status(403).json({ success: false, message: 'Only group admin can add members' });
+//     }
+
+//     // Find user by email
+//     const userToAdd = await User.findOne({ email });
+//     if (!userToAdd) {
+//       return res.status(404).json({ success: false, message: 'User not found with this email' });
+//     }
+
+//     // Check if user already in group
+//     const userExists = group.members.some(member => 
+//       member.userId.toString() === userToAdd._id.toString()
+//     );
+    
+//     if (userExists) {
+//       return res.status(400).json({ success: false, message: 'User already in group' });
+//     }
+
+//     // Add user to group
+//     group.members.push({ 
+//       userId: userToAdd._id, 
+//       role: 'member',
+//       joinedAt: new Date()
+//     });
+    
+//     await group.save();
+    
+//     const updatedGroup = await Group.findById(group._id)
+//       .populate('members.userId', 'name email avatar _id');
+    
+//     res.json({
+//       success: true,
+//       message: 'Member added successfully',
+//       data: { members: updatedGroup.members }
+//     });
+//   } catch (error) {
+//     console.error('Add member to group error:', error);
+//     res.status(500).json({ success: false, message: 'Server error while adding member' });
+//   }
+// });
+
+// app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res) => {
+//   try {
+//     const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
+    
+//     if (!group) {
+//       return res.status(404).json({ success: false, message: 'Group not found' });
+//     }
+
+//     // Check if current user is admin
+//     const currentUserMember = group.members.find(member => 
+//       member.userId.toString() === req.user._id.toString()
+//     );
+    
+//     if (currentUserMember?.role !== 'admin') {
+//       return res.status(403).json({ success: false, message: 'Only group admin can remove members' });
+//     }
+
+//     // Prevent removing yourself
+//     if (req.params.memberId === req.user._id.toString()) {
+//       return res.status(400).json({ success: false, message: 'Cannot remove yourself from group' });
+//     }
+
+//     // Remove member
+//     group.members = group.members.filter(member => 
+//       member.userId.toString() !== req.params.memberId
+//     );
+    
+//     await group.save();
+    
+//     const updatedGroup = await Group.findById(group._id)
+//       .populate('members.userId', 'name email avatar _id');
+    
+//     res.json({
+//       success: true,
+//       message: 'Member removed successfully',
+//       data: { members: updatedGroup.members }
+//     });
+//   } catch (error) {
+//     console.error('Remove member from group error:', error);
+//     res.status(500).json({ success: false, message: 'Server error while removing member' });
+//   }
+// });
+
+// ==================== ENHANCED GROUP MEMBER MANAGEMENT ROUTES ====================
+
+// Get group members with full user details
 app.get('/api/groups/:id/members', authMiddleware, async (req, res) => {
   try {
     const group = await Group.findOne({ 
@@ -1430,11 +1556,16 @@ app.get('/api/groups/:id/members', authMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Group not found' });
     }
 
+    // Find current user's role in the group
+    const currentUserMember = group.members.find(member => 
+      member.userId._id.toString() === req.user._id.toString()
+    );
+
     res.json({ 
       success: true, 
       data: { 
         members: group.members,
-        currentUserRole: group.members.find(m => m.userId._id.toString() === req.user._id.toString())?.role
+        currentUserRole: currentUserMember?.role || 'member'
       } 
     });
   } catch (error) {
@@ -1443,9 +1574,15 @@ app.get('/api/groups/:id/members', authMiddleware, async (req, res) => {
   }
 });
 
+// Add member to group by email (FIXED VERSION)
 app.post('/api/groups/:id/members', authMiddleware, async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req.body; // ✅ Now expecting email instead of userId
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
     const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
     
     if (!group) {
@@ -1462,7 +1599,7 @@ app.post('/api/groups/:id/members', authMiddleware, async (req, res) => {
     }
 
     // Find user by email
-    const userToAdd = await User.findOne({ email });
+    const userToAdd = await User.findOne({ email: email.toLowerCase().trim() });
     if (!userToAdd) {
       return res.status(404).json({ success: false, message: 'User not found with this email' });
     }
@@ -1485,20 +1622,31 @@ app.post('/api/groups/:id/members', authMiddleware, async (req, res) => {
     
     await group.save();
     
+    // Return updated members with populated user data
     const updatedGroup = await Group.findById(group._id)
       .populate('members.userId', 'name email avatar _id');
     
     res.json({
       success: true,
       message: 'Member added successfully',
-      data: { members: updatedGroup.members }
+      data: { 
+        members: updatedGroup.members,
+        group: updatedGroup 
+      }
     });
   } catch (error) {
     console.error('Add member to group error:', error);
+    
+    // More specific error handling
+    if (error.name === 'MongoError' && error.code === 11000) {
+      return res.status(400).json({ success: false, message: 'User already exists in this group' });
+    }
+    
     res.status(500).json({ success: false, message: 'Server error while adding member' });
   }
 });
 
+// Remove member from group (FIXED VERSION)
 app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res) => {
   try {
     const group = await Group.findOne({ _id: req.params.id, 'members.userId': req.user._id });
@@ -1521,6 +1669,15 @@ app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res)
       return res.status(400).json({ success: false, message: 'Cannot remove yourself from group' });
     }
 
+    // Check if member exists in group
+    const memberToRemove = group.members.find(member => 
+      member.userId.toString() === req.params.memberId
+    );
+    
+    if (!memberToRemove) {
+      return res.status(404).json({ success: false, message: 'Member not found in group' });
+    }
+
     // Remove member
     group.members = group.members.filter(member => 
       member.userId.toString() !== req.params.memberId
@@ -1528,23 +1685,23 @@ app.delete('/api/groups/:id/members/:memberId', authMiddleware, async (req, res)
     
     await group.save();
     
+    // Return updated members with populated user data
     const updatedGroup = await Group.findById(group._id)
       .populate('members.userId', 'name email avatar _id');
     
     res.json({
       success: true,
       message: 'Member removed successfully',
-      data: { members: updatedGroup.members }
+      data: { 
+        members: updatedGroup.members,
+        group: updatedGroup 
+      }
     });
   } catch (error) {
     console.error('Remove member from group error:', error);
     res.status(500).json({ success: false, message: 'Server error while removing member' });
   }
 });
-
-
-
-
 
 
 // ==================== DASHBOARD ROUTES ====================
@@ -1609,6 +1766,203 @@ app.get('/api/dashboard/summary', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Dashboard summary error:', error);
     res.status(500).json({ success: false, message: 'Server error while fetching dashboard data' });
+  }
+});
+
+
+// ==================== ENHANCED DASHBOARD ROUTES ====================
+
+// Get expense trends for charts
+app.get('/api/dashboard/trends', authMiddleware, async (req, res) => {
+  try {
+    const { period = 'monthly' } = req.query;
+    const userId = req.user._id;
+    
+    const currentDate = new Date();
+    let startDate, groupFormat;
+
+    switch (period) {
+      case 'weekly':
+        startDate = new Date(currentDate.setDate(currentDate.getDate() - 30));
+        groupFormat = '%Y-%U'; // Year-Week
+        break;
+      case 'monthly':
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 6, 1);
+        groupFormat = '%Y-%m'; // Year-Month
+        break;
+      case 'yearly':
+        startDate = new Date(currentDate.getFullYear() - 2, 0, 1);
+        groupFormat = '%Y'; // Year
+        break;
+      default:
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 6, 1);
+        groupFormat = '%Y-%m';
+    }
+
+    // Expense trends
+    const expenseTrends = await Expense.aggregate([
+      {
+        $match: {
+          userId: userId,
+          type: 'expense',
+          date: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            period: { $dateToString: { format: groupFormat, date: '$date' } },
+            type: '$type'
+          },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.period': 1 } }
+    ]);
+
+    // Income trends
+    const incomeTrends = await Expense.aggregate([
+      {
+        $match: {
+          userId: userId,
+          type: 'income',
+          date: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            period: { $dateToString: { format: groupFormat, date: '$date' } },
+            type: '$type'
+          },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.period': 1 } }
+    ]);
+
+    // Format data for charts
+    const periods = [...new Set([
+      ...expenseTrends.map(item => item._id.period),
+      ...incomeTrends.map(item => item._id.period)
+    ])].sort();
+
+    const expenseData = periods.map(period => {
+      const expense = expenseTrends.find(item => item._id.period === period);
+      return expense ? expense.total : 0;
+    });
+
+    const incomeData = periods.map(period => {
+      const income = incomeTrends.find(item => item._id.period === period);
+      return income ? income.total : 0;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        periods,
+        expenseData,
+        incomeData,
+        netSavings: incomeData.map((income, index) => income - expenseData[index])
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard trends error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching trends' });
+  }
+});
+
+// Get category breakdown
+app.get('/api/dashboard/categories', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    const categoryBreakdown = await Expense.aggregate([
+      {
+        $match: {
+          userId: userId,
+          type: 'expense',
+          date: { $gte: firstDayOfMonth }
+        }
+      },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+          average: { $avg: '$amount' }
+        }
+      },
+      { $sort: { total: -1 } }
+    ]);
+
+    const totalExpenses = categoryBreakdown.reduce((sum, item) => sum + item.total, 0);
+
+    const categoriesWithPercentage = categoryBreakdown.map(item => ({
+      category: item._id,
+      total: item.total,
+      count: item.count,
+      average: item.average,
+      percentage: totalExpenses > 0 ? (item.total / totalExpenses) * 100 : 0
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        categories: categoriesWithPercentage,
+        totalExpenses
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard categories error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching categories' });
+  }
+});
+
+// Get recent activity with more details
+app.get('/api/dashboard/activity', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    const recentTransactions = await Expense.find({ userId: userId })
+      .sort({ date: -1, createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    // Get recent trip and group activities
+    const recentTrips = await Trip.find({ 
+      'members.userId': userId,
+      isActive: true 
+    })
+    .populate('members.userId', 'name email avatar')
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+    const recentGroups = await Group.find({ 
+      'members.userId': userId,
+      isActive: true 
+    })
+    .populate('members.userId', 'name email avatar')
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+    res.json({
+      success: true,
+      data: {
+        recentTransactions,
+        recentTrips,
+        recentGroups
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard activity error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching activity' });
   }
 });
 

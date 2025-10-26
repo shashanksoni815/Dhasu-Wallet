@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/auth/me');
+      const response = await axios.get('https://dhasu-wallet-backend-route.onrender.com/api/auth/me');
       setUser(response.data.data.user);
     } catch (error) {
       // 401 is expected when token is invalid/expired
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
+      const response = await axios.post('https://dhasu-wallet-backend-route.onrender.com/api/auth/login', {
         email,
         password
       });
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/register', {
+      const response = await axios.post('https://dhasu-wallet-backend-route.onrender.com/api/auth/register', {
         name,
         email,
         password

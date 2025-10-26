@@ -22,7 +22,7 @@ export const TripProvider = ({ children }) => {
   // Search users by email
   const searchUsers = async (email) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/search?email=${email}`);
+      const response = await axios.get(`https://dhasu-wallet-backend-route.onrender.com/api/users/search?email=${email}`);
       return response.data.data.users;
     } catch (error) {
       console.error('Error searching users:', error);
@@ -34,7 +34,7 @@ export const TripProvider = ({ children }) => {
   // Get trip members from database
   const fetchTripMembers = async (tripId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}/members`);
+      const response = await axios.get(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/members`);
       setTripMembers(response.data.data.members);
       return response.data.data;
     } catch (error) {
@@ -46,7 +46,7 @@ export const TripProvider = ({ children }) => {
   // Add member to trip by email
   const addMemberByEmail = async (tripId, email) => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/trips/${tripId}/members/email`, { email });
+      const response = await axios.post(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/members/email`, { email });
       setTripMembers(response.data.data.members);
       return response.data;
     } catch (error) {
@@ -58,7 +58,7 @@ export const TripProvider = ({ children }) => {
   // Remove member from trip
   const removeMember = async (tripId, memberId) => {
     try {
-      const response = await axios.delete(`http://localhost:8080/api/trips/${tripId}/members/${memberId}`);
+      const response = await axios.delete(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/members/${memberId}`);
       setTripMembers(response.data.data.members);
       return response.data;
     } catch (error) {
@@ -70,7 +70,7 @@ export const TripProvider = ({ children }) => {
   // Create expense with auto-split
   const createAutoSplitExpense = async (tripId, expenseData) => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/trips/${tripId}/expenses/auto-split`, expenseData);
+      const response = await axios.post(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/expenses/auto-split`, expenseData);
       setTripExpenses(prev => [response.data.data.expense, ...prev]);
       return { success: true, data: response.data.data.expense };
     } catch (error) {
@@ -85,7 +85,7 @@ export const TripProvider = ({ children }) => {
   // Get settlements
   const fetchSettlements = async (tripId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}/settlements`);
+      const response = await axios.get(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/settlements`);
       setSettlements(response.data.data.settlements);
       return response.data.data;
     } catch (error) {
@@ -98,7 +98,7 @@ export const TripProvider = ({ children }) => {
   const fetchTrips = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/trips');
+      const response = await axios.get('https://dhasu-wallet-backend-route.onrender.com/api/trips');
       setTrips(response.data.data.trips);
       return response.data.data;
     } catch (error) {
@@ -113,7 +113,7 @@ export const TripProvider = ({ children }) => {
   const fetchTripById = async (tripId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}`);
+      const response = await axios.get(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}`);
       setCurrentTrip(response.data.data.trip);
       return response.data.data;
     } catch (error) {
@@ -127,7 +127,7 @@ export const TripProvider = ({ children }) => {
   // Create new trip
   const createTrip = async (tripData) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/trips', tripData);
+      const response = await axios.post('https://dhasu-wallet-backend-route.onrender.com/api/trips', tripData);
       setTrips(prev => [response.data.data.trip, ...prev]);
       return { success: true, data: response.data.data.trip };
     } catch (error) {
@@ -142,7 +142,7 @@ export const TripProvider = ({ children }) => {
   // Update trip
   const updateTrip = async (tripId, tripData) => {
     try {
-      const response = await axios.put(`http://localhost:8080/api/trips/${tripId}`, tripData);
+      const response = await axios.put(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}`, tripData);
       setTrips(prev => prev.map(trip => 
         trip._id === tripId ? response.data.data.trip : trip
       ));
@@ -162,7 +162,7 @@ export const TripProvider = ({ children }) => {
   // Delete trip
   const deleteTrip = async (tripId) => {
     try {
-      await axios.delete(`http://localhost:8080/api/trips/${tripId}`);
+      await axios.delete(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}`);
       setTrips(prev => prev.filter(trip => trip._id !== tripId));
       if (currentTrip && currentTrip._id === tripId) {
         setCurrentTrip(null);
@@ -180,7 +180,7 @@ export const TripProvider = ({ children }) => {
   // Trip Expenses Management
   const fetchTripExpenses = async (tripId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/trips/${tripId}/expenses`);
+      const response = await axios.get(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/expenses`);
       setTripExpenses(response.data.data.expenses);
       return response.data.data;
     } catch (error) {
@@ -191,7 +191,7 @@ export const TripProvider = ({ children }) => {
 
   const createTripExpense = async (tripId, expenseData) => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/trips/${tripId}/expenses`, expenseData);
+      const response = await axios.post(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/expenses`, expenseData);
       setTripExpenses(prev => [response.data.data.expense, ...prev]);
       return { success: true, data: response.data.data.expense };
     } catch (error) {
@@ -205,7 +205,7 @@ export const TripProvider = ({ children }) => {
 
   const updateTripExpense = async (tripId, expenseId, expenseData) => {
     try {
-      const response = await axios.put(`http://localhost:8080/api/trips/${tripId}/expenses/${expenseId}`, expenseData);
+      const response = await axios.put(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/expenses/${expenseId}`, expenseData);
       setTripExpenses(prev => prev.map(exp => 
         exp._id === expenseId ? response.data.data.expense : exp
       ));
@@ -221,7 +221,7 @@ export const TripProvider = ({ children }) => {
 
   const deleteTripExpense = async (tripId, expenseId) => {
     try {
-      await axios.delete(`http://localhost:8080/api/trips/${tripId}/expenses/${expenseId}`);
+      await axios.delete(`https://dhasu-wallet-backend-route.onrender.com/api/trips/${tripId}/expenses/${expenseId}`);
       setTripExpenses(prev => prev.filter(exp => exp._id !== expenseId));
       return { success: true };
     } catch (error) {

@@ -18,7 +18,7 @@ export const ExpenseProvider = ({ children }) => {
   const fetchExpenses = async (filters = {}) => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/expenses', { 
+      const response = await axios.get('https://dhasu-wallet-backend-route.onrender.com/api/expenses', { 
         params: filters 
       });
       setExpenses(response.data.data.expenses);
@@ -33,7 +33,7 @@ export const ExpenseProvider = ({ children }) => {
 
   const createExpense = async (expenseData) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/expenses', expenseData);
+      const response = await axios.post('https://dhasu-wallet-backend-route.onrender.com/api/expenses', expenseData);
       setExpenses(prev => [response.data.data.expense, ...prev]);
       return { success: true, data: response.data.data.expense };
     } catch (error) {
@@ -47,7 +47,7 @@ export const ExpenseProvider = ({ children }) => {
 
   const updateExpense = async (id, expenseData) => {
     try {
-      const response = await axios.put(`http://localhost:8080/api/expenses/${id}`, expenseData);
+      const response = await axios.put(`https://dhasu-wallet-backend-route.onrender.com/api/expenses/${id}`, expenseData);
       setExpenses(prev => prev.map(exp => 
         exp._id === id ? response.data.data.expense : exp
       ));
@@ -63,7 +63,7 @@ export const ExpenseProvider = ({ children }) => {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/api/expenses/${id}`);
+      await axios.delete(`https://dhasu-wallet-backend-route.onrender.com/api/expenses/${id}`);
       setExpenses(prev => prev.filter(exp => exp._id !== id));
       return { success: true };
     } catch (error) {

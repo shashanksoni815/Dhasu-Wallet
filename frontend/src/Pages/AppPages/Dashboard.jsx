@@ -8,7 +8,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/dashboard/summary');
+      const response = await axios.get('https://dhasu-wallet-backend-route.onrender.com/api/dashboard/summary');
       setDashboardData(response.data.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

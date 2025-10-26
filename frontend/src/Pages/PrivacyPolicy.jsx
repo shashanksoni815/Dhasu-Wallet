@@ -77,7 +77,7 @@ const PrivacyPolicy = () => {
           <div className="prose prose-lg max-w-none">
             <div className="mb-12">
               <p className="text-lg text-gray-600 mb-6">
-                At ExpenseTracker, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.
+                At Dhasu Wallet, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.
               </p>
             </div>
 
@@ -108,7 +108,7 @@ const PrivacyPolicy = () => {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <div className="space-y-2 text-gray-600">
-                <p>Email: privacy@expensetracker.com</p>
+                <p>Email: privacy@Dhasu Wallet.com</p>
                 <p>Address: 123 Financial District, San Francisco, CA 94105</p>
                 <p>Phone: +1 (555) 123-4567</p>
               </div>

@@ -94,7 +94,7 @@ const ExpenseList = ({ expenses, loading, onEdit, onDelete }) => {
               <span className={`text-lg font-semibold ${
                 expense.type === 'income' ? 'text-green-600' : 'text-red-600'
               }`}>
-                {expense.type === 'income' ? '+' : '-'}${expense.amount}
+                {expense.type === 'income' ? '+' : '-'}₹{expense.amount}
               </span>
               
               <div className="flex space-x-1">
@@ -126,10 +126,10 @@ const ExpenseList = ({ expenses, loading, onEdit, onDelete }) => {
           </span>
           <div className="flex space-x-4">
             <span className="text-green-600 font-medium">
-              Income: ${expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0).toFixed(2)}
+              Income: ₹{expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0).toFixed(2)}
             </span>
             <span className="text-red-600 font-medium">
-              Expenses: ${expenses.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0).toFixed(2)}
+              Expenses: ₹{expenses.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0).toFixed(2)}
             </span>
           </div>
         </div>

@@ -17,8 +17,8 @@ const Contact = () => {
       icon: Mail,
       title: 'Email Us',
       description: 'Send us an email anytime',
-      details: 'support@expensetracker.com',
-      action: 'mailto:support@expensetracker.com'
+      details: 'support@gmail.com',
+      action: 'mailto:support@gmail.com'
     },
     {
       icon: Phone,
@@ -248,7 +248,7 @@ const Contact = () => {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who have transformed their financial management with ExpenseTracker.
+            Join thousands of users who have transformed their financial management with Dhasu Wallet.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 transition-colors font-semibold text-lg">

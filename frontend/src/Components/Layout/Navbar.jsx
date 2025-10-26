@@ -5,7 +5,7 @@
 // src/components/Layout/Navbar.jsx
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, DollarSign } from 'lucide-react';
+import { Menu, X, DollarSign, IndianRupee } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +35,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-white" />
+              {/* <IndianRupee className="h-8 w-8 text-white" /> */}
             </div>
             <span className="text-xl font-bold text-gray-900">Dhasu Wallet</span>
           </Link>

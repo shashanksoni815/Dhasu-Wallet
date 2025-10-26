@@ -92,7 +92,7 @@ const About = () => {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               We believe that everyone deserves to have control over their finances, 
-              without complexity or stress. That's why we built ExpenseTracker.
+              without complexity or stress. That's why we built Dhasu Wallet.
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ const About = () => {
                 Our Story
               </h2>
               <p className="text-lg text-gray-600 mb-6">
-                ExpenseTracker was born from a simple observation: managing money shouldn't be complicated. 
+                Dhasu Wallet was born from a simple observation: managing money shouldn't be complicated. 
                 After years of struggling with spreadsheets, forgotten receipts, and awkward money conversations, 
                 our founder Sarah decided there had to be a better way.
               </p>
@@ -156,7 +156,7 @@ const About = () => {
               Our Values
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              These principles guide everything we do at ExpenseTracker.
+              These principles guide everything we do at Dhasu Wallet.
             </p>
           </div>
 

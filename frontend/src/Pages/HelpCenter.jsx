@@ -12,7 +12,7 @@ const HelpCenter = () => {
     {
       id: 'getting-started',
       name: 'Getting Started',
-      description: 'New to ExpenseTracker? Start here.',
+      description: 'New to Dhasu Wallet? Start here.',
       icon: '🚀',
       articles: [
         { title: 'Creating Your First Expense', views: '1.2k' },
@@ -138,7 +138,7 @@ const HelpCenter = () => {
               <span className="text-green-600"> Help You?</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Find answers to common questions, watch tutorials, and get the most out of ExpenseTracker.
+              Find answers to common questions, watch tutorials, and get the most out of Dhasu Wallet.
             </p>
             
             {/* Search Bar */}
@@ -286,7 +286,7 @@ const HelpCenter = () => {
             Still Need Help?
           </h2>
           <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Our support team is here to help you get the most out of ExpenseTracker.
+            Our support team is here to help you get the most out of Dhasu Wallet.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-green-600 px-8 py-4 rounded-lg hover:bg-green-50 transition-colors font-semibold text-lg">

@@ -83,11 +83,11 @@ const LiveDemo = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Experience ExpenseTracker
+              Experience Dhasu Wallet
               <span className="text-orange-600"> Live</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              See how ExpenseTracker works in real-time. No signup required - explore all features right here.
+              See how Dhasu Wallet works in real-time. No signup required - explore all features right here.
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ const LiveDemo = () => {
                   Interactive Demo
                 </h2>
                 <p className="text-xl text-gray-600">
-                  Watch ExpenseTracker in action. See how easy it is to manage your finances.
+                  Watch Dhasu Wallet in action. See how easy it is to manage your finances.
                 </p>
               </div>
 
@@ -206,7 +206,7 @@ const LiveDemo = () => {
                       Ready to Explore?
                     </h3>
                     <p className="text-gray-600">
-                      Click "Start Live Demo" to see ExpenseTracker in action
+                      Click "Start Live Demo" to see Dhasu Wallet in action
                     </p>
                     <div className="grid grid-cols-2 gap-4 mt-4">
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -235,7 +235,7 @@ const LiveDemo = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose ExpenseTracker?
+              Why Choose Dhasu Wallet?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover the features that make us the best choice for expense management.
@@ -261,7 +261,7 @@ const LiveDemo = () => {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who have transformed their financial management with ExpenseTracker.
+            Join thousands of users who have transformed their financial management with Dhasu Wallet.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-orange-600 px-8 py-4 rounded-lg hover:bg-orange-50 transition-colors font-semibold text-lg flex items-center justify-center space-x-2">

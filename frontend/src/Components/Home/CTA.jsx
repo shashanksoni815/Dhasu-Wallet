@@ -14,11 +14,11 @@ const CTA = () => {
   return (
     <section className="py-20 bg-gradient from-blue-600 to-purple-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center text-white">
+        <div className="text-center text-blue-500">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Transform Your Financial Life?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-blue-500 mb-8 max-w-3xl mx-auto">
             Join thousands of users who have saved time, money, and relationships with ExpenseTracker.
           </p>
 
@@ -39,7 +39,7 @@ const CTA = () => {
             {/* CTA Card */}
             <div className="bg-white rounded-2xl p-8 shadow-2xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Start Your Journey Today</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-800 mb-6">
                 Create your free account and experience the difference in just 5 minutes.
               </p>
               

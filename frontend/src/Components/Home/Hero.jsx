@@ -12,7 +12,7 @@ const Hero = () => {
             <span className="text-blue-600"> Financial Life</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            ExpenseTracker helps you manage personal expenses, split costs with friends, 
+            Dhasu Wallet helps you manage personal expenses, split costs with friends, 
             and track trip budgets—all in one beautiful, easy-to-use platform.
           </p>
           

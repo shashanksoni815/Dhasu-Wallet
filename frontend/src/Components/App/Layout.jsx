@@ -58,7 +58,7 @@ const Layout = ({ children }) => {
         <div className="flex items-center justify-between h-16 px-4 bg-blue-600 text-white">
           <div className="flex items-center">
             <DollarSign className="h-8 w-8" />
-            <span className="ml-2 text-xl font-bold">ExpenseTracker</span>
+            <span className="ml-2 text-xl font-bold">Dhasu Wallet</span>
           </div>
           <button 
             className="md:hidden"

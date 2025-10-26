@@ -76,7 +76,7 @@ const HowItWorks = () => {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Get started in minutes and see the difference in your financial health immediately. 
-              Here's how ExpenseTracker makes money management effortless.
+              Here's how Dhasu Wallet makes money management effortless.
             </p>
           </div>
         </div>
@@ -196,7 +196,7 @@ const HowItWorks = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Users Love ExpenseTracker
+              Why Users Love Dhasu Wallet
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover the features that make expense tracking enjoyable and effective.
@@ -242,7 +242,7 @@ const HowItWorks = () => {
             Start Your Financial Journey Today
           </h2>
           <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who have transformed their financial lives with ExpenseTracker.
+            Join thousands of users who have transformed their financial lives with Dhasu Wallet.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-green-600 px-8 py-4 rounded-lg hover:bg-green-50 transition-colors font-semibold text-lg">
